@@ -174,4 +174,5 @@ poetry.toml
 pyrightconfig.json
 token.txt
 unique_values.json
+offload
 # End of https://www.toptal.com/developers/gitignore/api/python
