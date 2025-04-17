@@ -17,7 +17,7 @@ class VizType(Enum):
     TABLE=auto()
 
 class Chart:
-    def __init__(self,name:str=None,viz_type:VizType=VizType.BAR):
+    def __init__(self,name:str=None,viz_type:VizType=VizType.BAR,dataset_id=1):
         self.name=name
         self.viz_type=viz_type
         self.x_axis=""
@@ -25,6 +25,7 @@ class Chart:
         self.group_by=[]
         self.filters=[]
         self.date_filters=[]
+        self.dataset_id=dataset_id
     def from_json(self,json_obj,superset_source:requests.session=None,superset_headers:dict=None,superset_url:str=None):
         try:
             self.x_axis=json_obj["x_axis"]
@@ -212,7 +213,7 @@ class Chart:
         
         json_obj["params"]=json.dumps(params,ensure_ascii=False)
         print(json_obj["params"])
-        json_obj["datasource_id"]=1
+        json_obj["datasource_id"]=self.dataset_id
         json_obj["datasource_type"]="table"
         json_obj["owners"]=[1]
         json_obj["cache_timeout"]=0

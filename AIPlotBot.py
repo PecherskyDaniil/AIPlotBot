@@ -96,9 +96,9 @@ def handle_prompt(message):
         return False
     prompt=message.text[len("/prompt "):]
     bot.send_message(message.from_user.id,"Пожалуйста, подождите пока ваш график загружается!")
-    chart=Chart(viz_type=VizType.TABLE)
+    chart=Chart(viz_type=VizType.TABLE,dataset_id=3)
     chart_json=get_chart_json()
-    chart.from_json(chart_json,superset_source=session,superset_headers=headers,superset_url="http://localhost:8088/api/v1/dataset/1")
+    chart.from_json(chart_json,superset_source=session,superset_headers=headers,superset_url="http://localhost:8088/api/v1/dataset/3")
     #chart.x_axis="Год"
     #chart.add_metric(aggr="count_distinct",column_name="Год",superset_source=session,superset_headers=headers,superset_url="http://localhost:8088/api/v1/dataset/1")
     #chart.add_group_by("Состояние")
@@ -204,9 +204,9 @@ def voice_processing(message):
         bot.send_message(message.from_user.id,"Речь не распознана!")
         return 0
     bot.send_message(message.from_user.id,"Пожалуйста, подождите пока ваш график загружается!")
-    chart=Chart(viz_type=VizType.TABLE)
+    chart=Chart(viz_type=VizType.TABLE,dataset_id=3)
     chart_json=get_chart_json()
-    chart.from_json(chart_json,superset_source=session,superset_headers=headers,superset_url="http://localhost:8088/api/v1/dataset/1")
+    chart.from_json(chart_json,superset_source=session,superset_headers=headers,superset_url="http://localhost:8088/api/v1/dataset/3")
     chart_id=create_new_chart(chart.superset_json(),session,headers)["id"]
     photofilename=f"./images/photo{string_to_hash(str(time.time())+str(message.from_user.id))}.jpg"
     get_screenshot(chart_id,photofilename,driver)
