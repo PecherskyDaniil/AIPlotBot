@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 aiogram==3.19.0
 pydub==0.25.1
 pyTelegramBotAPI==4.26.0
@@ -5,3 +6,12 @@ Requests==2.32.3
 selenium==4.31.0
 SpeechRecognition==3.11.0
 transformers==4.49.0
+=======
+aiogram==3.19.0
+pydub==0.25.1
+pyTelegramBotAPI==4.26.0
+Requests==2.32.3
+selenium==4.31.0
+SpeechRecognition==3.11.0
+transformers==4.49.0
+>>>>>>> 3cfdb5fce22b5c890f23bb63628f87e550c21698

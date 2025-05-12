@@ -21,6 +21,7 @@ def init_webdriver():
     options.add_argument("--headless=new")
     # set window size
     options.add_argument("--window-size=1920x1080")
+    options.add_argument("window-size=1920,1080")
     # initialize the WebDriver with the specified options
     driver = webdriver.Chrome(options=options)
     print(webdriver)
@@ -40,19 +41,20 @@ def get_screenshot(chart_id,filename,driver):
     #hidebutton=driver.find_element(By.CSS_SELECTOR, 'button[class="ant-btn superset-button superset-button-link css-15fnute"')
     #hidebutton.click()
     #sleep(10)
+    #driver.execute_script("document.body.style.zoom='45%'")
     hidebutton=driver.find_element(By.CSS_SELECTOR, 'button[aria-label="Menu actions trigger"')
     hidebutton.click()
-    sleep(1)
+    sleep(5)
     downloadbuttton=driver.find_element(By.CSS_SELECTOR, 'div[title=\"Download\"]')
     downloadbuttton.click()
     sleep(15)
     downloadimagebut=driver.find_element(By.XPATH,"//*[contains(text(), 'Download as image')]")
     downloadimagebut.click()
-    sleep(5)
+    sleep(10)
     os.rename("./images/"+os.listdir("./images")[0],filename)
     #hoverable = driver.find_element(By.CSS_SELECTOR, 'button[aria-label="Edit dashboard"]')
     #ActionChains(driver).move_to_element(hoverable).perform()
-    #driver.execute_script("document.body.style.zoom='45%'")
+    
     #sleep(2)
     print("Taking screenshot...")
     # take a screenshot and save it to a file

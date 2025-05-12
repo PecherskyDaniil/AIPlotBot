@@ -1,14 +1,20 @@
-def get_chart_json():
-    example_json={"x_axis":"Водохранилище",
+def get_chart_json(prompt):
+    example_json={"x_axis":"name",
                 "y_axis":"avg_inflow",
                 "viz_type":"line",
-                "group":["date"],
-                #"filters":[
-                #    {
-                #        "date_from":"2021-03-04T00:00:00",
-                #        "date_to":"2021-05-07T00:00:00"
-                #    }
-                #]
+                "group_by":["level"],
+                "filters":[
+                    {
+                        "column":"Водохранилище",
+                        "type":"IN",
+                        "values":["иркутское"]
+                    },
+                    {
+                        "column":"date",
+                        "type":"TEMPORAL RANGE",
+                        "values":["2013-04-13","2016-03-05"]
+                    }
+                ]
 
     }
-    return example_json
+    return example_json,"water"

@@ -38,7 +38,6 @@ def create_new_chart(chart_obj,session,headers):
 
 def get_filter_state(tokens,dashboard_id,headers):
     response=session.get(url+f"/api/v1/dashboard/{1}",headers={"Authorization":headers["Authorization"]}).json()
-    print()
     jm=json.loads(response["result"]["json_metadata"])
     codes=[]
     cnames=[]
@@ -96,9 +95,11 @@ def handle_prompt(message):
         return False
     prompt=message.text[len("/prompt "):]
     bot.send_message(message.from_user.id,"Пожалуйста, подождите пока ваш график загружается!")
-    chart=Chart(viz_type=VizType.TABLE,dataset_id=3)
-    chart_json=get_chart_json()
-    chart.from_json(chart_json,superset_source=session,superset_headers=headers,superset_url="http://localhost:8088/api/v1/dataset/3")
+    chart=Chart(viz_type=VizType.TABLE)
+    
+    chart_json,dataset_name=get_chart_json(prompt)
+    chart.set_dataset(dataset_name=dataset_name,superset_url="http://localhost:8088",access_token=access_token)
+    chart.from_json(chart_json,superset_source=session,superset_headers=headers)
     #chart.x_axis="Год"
     #chart.add_metric(aggr="count_distinct",column_name="Год",superset_source=session,superset_headers=headers,superset_url="http://localhost:8088/api/v1/dataset/1")
     #chart.add_group_by("Состояние")
@@ -166,7 +167,7 @@ def callback_query(call):
         chart.pop("url")
         chart["owners"]=[1]
         button_data=str(session.put(url+f"/api/v1/chart/{call.data[1:]}",headers=headers,json=chart).json()["id"])
-        photofilename=f"./images/photo{string_to_hash(str(time.time())+str(call.message.chat.id))}.png"
+        photofilename=f"./images/photo{string_to_hash(str(time.time())+str(call.message.chat.id))}.jpg"
         get_screenshot(int(call.data[1:]),photofilename,driver)
         markup = types.InlineKeyboardMarkup()
         button1 = types.InlineKeyboardButton("Изменить оформление", callback_data="CHO"+button_data)
@@ -204,9 +205,10 @@ def voice_processing(message):
         bot.send_message(message.from_user.id,"Речь не распознана!")
         return 0
     bot.send_message(message.from_user.id,"Пожалуйста, подождите пока ваш график загружается!")
-    chart=Chart(viz_type=VizType.TABLE,dataset_id=3)
-    chart_json=get_chart_json()
-    chart.from_json(chart_json,superset_source=session,superset_headers=headers,superset_url="http://localhost:8088/api/v1/dataset/3")
+    chart=Chart(viz_type=VizType.TABLE)
+    chart_json,dataset_name=get_chart_json(prompt)
+    chart.set_dataset(dataset_name=dataset_name,superset_url="http://localhost:8088",access_token=access_token)
+    chart.from_json(chart_json,superset_source=session,superset_headers=headers)
     chart_id=create_new_chart(chart.superset_json(),session,headers)["id"]
     photofilename=f"./images/photo{string_to_hash(str(time.time())+str(message.from_user.id))}.jpg"
     get_screenshot(chart_id,photofilename,driver)

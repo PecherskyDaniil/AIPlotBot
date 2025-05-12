@@ -7,6 +7,7 @@ from aiogram.types import ContentType, File,FSInputFile,Message,CallbackQuery,In
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 import time
 import hashlib
+from ai.aiscript import get_chart_json
 from audiototext.audiototext import audio_to_text
 #from ai.aiscript import get_tokens
 from getscreenshot import get_screenshot,init_webdriver
@@ -114,12 +115,10 @@ async def handle_prompt(message: Message):
     prompt=message.text[len("/prompt "):]
     await message.answer("подождите ваш график загружается!")
     bot.send_message(message.from_user.id,"Пожалуйста, подождите пока ваш график загружается!")
-    chart=Chart(viz_type=VizType.BAR)
-    chart.x_axis="Год"
-    chart.add_metric(aggr="count_distinct",column_name="Год",superset_source=session,superset_headers=headers,superset_url="http://localhost:8088/api/v1/dataset/1")
-    chart.add_group_by("Состояние")
-    chart.add_group_by("Управление")
-    print(chart.pandas_dict())
+    chart=Chart(viz_type=VizType.TABLE)
+    chart_json,dataset_name=get_chart_json(prompt)
+    chart.set_dataset(dataset_name=dataset_name,superset_url="http://localhost:8088",access_token=access_token)
+    chart.from_json(chart_json,superset_source=session,superset_headers=headers)
     chart_id=create_new_chart(chart.superset_json(),session,headers)["id"]
     photofilename=f"./images/photo{string_to_hash(str(time.time())+str(message.from_user.id))}.png"
     get_screenshot(chart_id,photofilename,driver)
@@ -202,12 +201,10 @@ async def voice_message_handler(message: Message):
         await message.answer("Не распознано!")
         return 0
     await message.answer("Подождите ваш график загружается!")
-    chart=Chart(viz_type=VizType.BAR)
-    chart.x_axis="Год"
-    chart.add_metric(aggr="count_distinct",column_name="Год",superset_source=session,superset_headers=headers,superset_url="http://localhost:8088/api/v1/dataset/1")
-    chart.add_group_by("Состояние")
-    chart.add_group_by("Управление")
-    print(chart.pandas_dict())
+    chart=Chart(viz_type=VizType.TABLE)
+    chart_json,dataset_name=get_chart_json(prompt)
+    chart.set_dataset(dataset_name=dataset_name,superset_url="http://localhost:8088",access_token=access_token)
+    chart.from_json(chart_json,superset_source=session,superset_headers=headers)
     chart_id=create_new_chart(chart.superset_json(),session,headers)["id"]
     photofilename=f"./images/photo{string_to_hash(str(time.time())+str(message.from_user.id))}.png"
     get_screenshot(chart_id,photofilename,driver)

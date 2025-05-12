@@ -17,7 +17,7 @@ class VizType(Enum):
     TABLE=auto()
 
 class Chart:
-    def __init__(self,name:str=None,viz_type:VizType=VizType.BAR,dataset_id=1):
+    def __init__(self,name:str=None,viz_type:VizType=VizType.BAR):
         self.name=name
         self.viz_type=viz_type
         self.x_axis=""
@@ -25,9 +25,18 @@ class Chart:
         self.group_by=[]
         self.filters=[]
         self.date_filters=[]
-        self.dataset_id=dataset_id
-    def from_json(self,json_obj,superset_source:requests.session=None,superset_headers:dict=None,superset_url:str=None):
-        try:
+    def set_dataset(self,dataset_name,superset_url,access_token):
+        self.superset_url=superset_url
+        url=superset_url+"/api/v1/dataset/"
+        headers = {'Authorization': f'Bearer {access_token}'}        
+        answer=requests.get(url,headers={"Authorization":headers["Authorization"]}).json()
+        for dataset in answer["result"]:
+            if dataset["table_name"]==dataset_name:
+                self.dataset_id=int(dataset["id"])
+                break
+        return  self.dataset_id
+    def from_json(self,json_obj,superset_source:requests.session=None,superset_headers:dict=None):
+        #try:
             self.x_axis=json_obj["x_axis"]
             switchviztype = { "table":VizType.TABLE,
                           "line":VizType.LINE,
@@ -38,28 +47,22 @@ class Chart:
                           "number":VizType.NUMBER}
             self.viz_type=switchviztype[json_obj["viz_type"]]
             if "aggr" in json_obj.keys():
-                self.add_metric(aggr=json_obj["aggr"],column_name=json_obj["y_axis"],superset_source=superset_source,superset_headers=superset_headers,superset_url=superset_url)
+                self.add_metric(aggr=json_obj["aggr"],column_name=json_obj["y_axis"],superset_source=superset_source,superset_headers=superset_headers,superset_url=self.superset_url+"/api/v1/dataset/"+str(self.dataset_id))
             else:
-                self.add_metric(aggr="sum",column_name=json_obj["y_axis"],superset_source=superset_source,superset_headers=superset_headers,superset_url=superset_url)
+                self.add_metric(aggr="sum",column_name=json_obj["y_axis"],superset_source=superset_source,superset_headers=superset_headers,superset_url=self.superset_url+"/api/v1/dataset/"+str(self.dataset_id))
             if "filters" in json_obj.keys():
-                dt=""
-                df=""
-                for filt_key in json_obj["filters"][0].keys():
-                    if filt_key=="date_to":
-                        dt=json_obj["filters"][0][filt_key]
-                    elif filt_key=="date_from":
-                        dt=json_obj["filters"][0][filt_key]
+                for filter in json_obj["filters"]:
+                    if filter["type"]=="TEMPORAL RANGE":
+                        self.add_filter_date(filter["column"],filter["values"])
                     else:
-                        self.add_filter_in(filt_key,json_obj["filters"][0][filt_key])
-                if dt!="" and df!="":
-                    self.add_filter_date("Дата",[df,dt])
+                        self.add_filter_in(filter["column"],filter["type"],filter["values"])
             if "group_by" in json_obj.keys():
                 for group in json_obj["group_by"]:
                     self.add_group_by(group)
             return self
             
-        except:
-            raise JsonSerializeError
+        #except:
+        #    raise JsonSerializeError
     def add_metric(self,aggr:str="count",column_name:str=None,superset_source:requests.session=None,superset_headers:dict=None,superset_url:str=None):
         if superset_source is not None and superset_headers is not None and superset_url is not None:
             response=superset_source.get(superset_url,headers=superset_headers)
@@ -121,8 +124,8 @@ class Chart:
         else:
             self.group_by.append(column_name)
             return self.group_by
-    def add_filter_in(self,column,values):
-        self.filters.append([column,values])
+    def add_filter_in(self,column,type,values):
+        self.filters.append([column,type,values])
     def remove_filter_in(self,ind):
         self.filters.pop(ind)
     def add_filter_date(self,column,values):
@@ -185,9 +188,9 @@ class Chart:
                 sup_filter={}
                 sup_filter["expressionType"]="SIMPLE"
                 sup_filter["subject"]=filter[0]
-                sup_filter["operator"]="IN"
-                sup_filter["operatorId"]="IN"
-                sup_filter["comparator"]=filter[1]
+                sup_filter["operator"]=filter[1]
+                sup_filter["operatorId"]=filter[1]
+                sup_filter["comparator"]=filter[2]
                 sup_filter["clause"]="WHERE"
                 sup_filter["sqlExpression"]=None
                 sup_filter["isExtra"]=False
