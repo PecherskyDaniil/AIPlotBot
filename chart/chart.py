@@ -33,8 +33,8 @@ class Chart:
         for dataset in answer["result"]:
             if dataset["table_name"]==dataset_name:
                 self.dataset_id=int(dataset["id"])
-                break
-        return  self.dataset_id
+                return  self.dataset_id
+        raise RuntimeError("Dataset not found")
     def from_json(self,json_obj,superset_source:requests.session=None,superset_headers:dict=None):
         #try:
             self.x_axis=json_obj["x_axis"]
