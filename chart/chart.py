@@ -47,13 +47,13 @@ class Chart:
                           "number":VizType.NUMBER}
             self.viz_type=switchviztype[json_obj["chart_type"]]
             if "aggr" in json_obj.keys():
-                if type(json_obj["y_axis"])==str or (type(json_obj["y_axis"])==list and len(json_obj["y_axis"])==1):
+                if type(json_obj["y_axis"])==str:
                     self.add_metric(aggr=json_obj["aggr"],column_name=json_obj["y_axis"],superset_source=superset_source,superset_headers=superset_headers,superset_url=self.superset_url+"/api/v1/dataset/"+str(self.dataset_id))
                 else:
                     for yi in range(len(json_obj["y_axis"])):
                         self.add_metric(aggr=json_obj["aggr"][yi],column_name=json_obj["y_axis"][yi],superset_source=superset_source,superset_headers=superset_headers,superset_url=self.superset_url+"/api/v1/dataset/"+str(self.dataset_id))
             else:
-                if type(json_obj["y_axis"])==str or (type(json_obj["y_axis"])==list and len(json_obj["y_axis"])==1):
+                if type(json_obj["y_axis"])==str:
                     self.add_metric(aggr="sum",column_name=json_obj["y_axis"],superset_source=superset_source,superset_headers=superset_headers,superset_url=self.superset_url+"/api/v1/dataset/"+str(self.dataset_id))
                 else:
                     for yi in range(len(json_obj["y_axis"])):
