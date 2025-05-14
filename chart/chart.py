@@ -36,7 +36,7 @@ class Chart:
                 return  self.dataset_id
         raise RuntimeError("Dataset not found")
     def from_json(self,json_obj,superset_source:requests.session=None,superset_headers:dict=None):
-        #try:
+        try:
             self.x_axis=json_obj["x_axis"]
             switchviztype = { "table":VizType.TABLE,
                           "line":VizType.LINE,
@@ -45,11 +45,19 @@ class Chart:
                           "scatter":VizType.SCATTER,
                           "area":VizType.AREA,
                           "number":VizType.NUMBER}
-            self.viz_type=switchviztype[json_obj["viz_type"]]
+            self.viz_type=switchviztype[json_obj["chart_type"]]
             if "aggr" in json_obj.keys():
-                self.add_metric(aggr=json_obj["aggr"],column_name=json_obj["y_axis"],superset_source=superset_source,superset_headers=superset_headers,superset_url=self.superset_url+"/api/v1/dataset/"+str(self.dataset_id))
+                if type(json_obj["y_axis"])==str or (type(json_obj["y_axis"])==list and len(json_obj["y_axis"])==1):
+                    self.add_metric(aggr=json_obj["aggr"],column_name=json_obj["y_axis"],superset_source=superset_source,superset_headers=superset_headers,superset_url=self.superset_url+"/api/v1/dataset/"+str(self.dataset_id))
+                else:
+                    for yi in range(len(json_obj["y_axis"])):
+                        self.add_metric(aggr=json_obj["aggr"][yi],column_name=json_obj["y_axis"][yi],superset_source=superset_source,superset_headers=superset_headers,superset_url=self.superset_url+"/api/v1/dataset/"+str(self.dataset_id))
             else:
-                self.add_metric(aggr="sum",column_name=json_obj["y_axis"],superset_source=superset_source,superset_headers=superset_headers,superset_url=self.superset_url+"/api/v1/dataset/"+str(self.dataset_id))
+                if type(json_obj["y_axis"])==str or (type(json_obj["y_axis"])==list and len(json_obj["y_axis"])==1):
+                    self.add_metric(aggr="sum",column_name=json_obj["y_axis"],superset_source=superset_source,superset_headers=superset_headers,superset_url=self.superset_url+"/api/v1/dataset/"+str(self.dataset_id))
+                else:
+                    for yi in range(len(json_obj["y_axis"])):
+                        self.add_metric(aggr="sum",column_name=json_obj["y_axis"][yi],superset_source=superset_source,superset_headers=superset_headers,superset_url=self.superset_url+"/api/v1/dataset/"+str(self.dataset_id))
             if "filters" in json_obj.keys():
                 for filter in json_obj["filters"]:
                     if filter["type"]=="TEMPORAL RANGE":
@@ -61,8 +69,8 @@ class Chart:
                     self.add_group_by(group)
             return self
             
-        #except:
-        #    raise JsonSerializeError
+        except:
+            raise JsonSerializeError
     def add_metric(self,aggr:str="count",column_name:str=None,superset_source:requests.session=None,superset_headers:dict=None,superset_url:str=None):
         if superset_source is not None and superset_headers is not None and superset_url is not None:
             response=superset_source.get(superset_url,headers=superset_headers)

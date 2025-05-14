@@ -100,28 +100,35 @@ async def handle_prompt(message: Message):
     global access_token
     global csrf_token
     file_ids = []
-    if time.time()-access_exp>100:
-        response = session.post(api_url, json=payload)
-        refresh_token = response.json()["refresh_token"]
-        access_token = response.json()["access_token"]
-        headers = {'Authorization': f'Bearer {access_token}'}
-        csrf_token=session.get(f"{url}/api/v1/security/csrf_token/",headers=headers).json()
-        csrf_token=csrf_token["result"]
-        access_exp=time.time()
-    headers = {"Authorization": f"Bearer {access_token}",'Accept': 'application/json','X-CSRFToken': csrf_token,"Referer":f"{url}/api/v1/security/csrf_token/"}
+    try:
+        if time.time()-access_exp>100:
+            response = session.post(api_url, json=payload)
+            refresh_token = response.json()["refresh_token"]
+            access_token = response.json()["access_token"]
+            headers = {'Authorization': f'Bearer {access_token}'}
+            csrf_token=session.get(f"{url}/api/v1/security/csrf_token/",headers=headers).json()
+            csrf_token=csrf_token["result"]
+            access_exp=time.time()
+        headers = {"Authorization": f"Bearer {access_token}",'Accept': 'application/json','X-CSRFToken': csrf_token,"Referer":f"{url}/api/v1/security/csrf_token/"}
+    except: 
+        await message.answer("Произошла ошибка при подключении к серверу superset")
+        return False
     if len(message.text.replace(" ",""))==len("/prompt"):
         bot.send_message(message.from_user.id,"Впишите текст промпта после команды")
         return False
     prompt=message.text[len("/prompt "):]
     await message.answer("подождите ваш график загружается!")
     bot.send_message(message.from_user.id,"Пожалуйста, подождите пока ваш график загружается!")
-    chart=Chart(viz_type=VizType.TABLE)
-    chart_json,dataset_name=get_chart_json(prompt)
-    chart.set_dataset(dataset_name=dataset_name,superset_url="http://localhost:8088",access_token=access_token)
-    chart.from_json(chart_json,superset_source=session,superset_headers=headers)
-    chart_id=create_new_chart(chart.superset_json(),session,headers)["id"]
-    photofilename=f"./images/photo{string_to_hash(str(time.time())+str(message.from_user.id))}.png"
-    get_screenshot(chart_id,photofilename,driver)
+    try:
+        chart=Chart(viz_type=VizType.TABLE)
+        chart_json,dataset_name=get_chart_json(prompt)
+        chart.set_dataset(dataset_name=dataset_name,superset_url="http://localhost:8088",access_token=access_token)
+        chart.from_json(chart_json,superset_source=session,superset_headers=headers)
+        chart_id=create_new_chart(chart.superset_json(),session,headers)["id"]
+        photofilename=f"./images/photo{string_to_hash(str(time.time())+str(message.from_user.id))}.png"
+        get_screenshot(chart_id,photofilename,driver)
+    except:
+        await message.answer("Не удалось выполнить ваш запрос")
     image_from_pc = FSInputFile(photofilename)
     result = await message.answer_photo(
         image_from_pc,reply_markup=get_keyboard_change_look(chart_id)
